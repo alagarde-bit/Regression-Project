@@ -1,0 +1,164 @@
+---
+title: "Volleyball Regression"
+author: "Alex Lagarde"
+date: "6/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Uploading data and tidyverse package
+
+```{r }
+library(tidyverse)
+womens_ncaa_volleyball <- read_csv("womens_ncaa_volleyball_20182019.csv")
+```
+
+## Exploratory Data Analysis
+
+Looking at what response variables are normally distributed
+
+```{r }
+
+womens_ncaa_volleyball <- womens_ncaa_volleyball %>% 
+  mutate(errors_per_set = errors / s,
+         attacks_per_set = total_attacks / s,
+         G = w + l,
+         sets_per_game = s / G) 
+  
+  errors <- ggplot(womens_ncaa_volleyball) +
+  geom_histogram(aes(x = errors_per_set, y = ..density..), 
+                 center = 0.5,
+                  closed = "left",
+                   color = "white") +
+   stat_function(fun = dnorm, 
+                 color = "red",
+                 n = 666,
+                 args = list(mean = mean(womens_ncaa_volleyball$errors_per_set),
+                             sd = sd(womens_ncaa_volleyball$errors_per_set))) +
+   labs(title = "Checking Normality for Errors",
+        subtitle = "CMSA Regresion Project",
+        x = "Errors Per Set",
+        y = "Density",
+        caption = "Courtesy of the NCAA") +
+ theme_bw() + 
+ theme(plot.title = element_text(size = 17, hjust = 0.4),
+       axis.title = element_text(size = 15))
+   
+errors
+library(GGally)
+ncol(womens_ncaa_volleyball)
+ggpairs(womens_ncaa_volleyball, columns = c("win_pct", "kills_per_set", "errors_per_set", "assists_per_set", "blocks_per_set","aces_per_set", "hit_pct",
+"attacks_per_set"))
+
+
+win_percentage <- ggplot(womens_ncaa_volleyball) +
+  geom_histogram(aes(x = win_pct, y = ..density..),
+                 center = 0.5, 
+                 closed = "left",
+                 color = "White") + 
+  stat_function(fun = dnorm, 
+                color = "red",
+                n = 666,
+                args = list(mean = mean(womens_ncaa_volleyball$win_pct), sd = sd(womens_ncaa_volleyball$win_pct))) +  
+  labs(title = "Checking Normality for Win Percentage",
+       subtitle = "CMSA Regresion Project",
+       x = "Win Percentage",
+       y = "Density",
+       caption = "Courtesy of the NCAA") +
+theme_bw() + 
+theme(plot.title = element_text(size = 17, hjust = 0.4),
+      axis.title = element_text(size = 15))
+  
+win_percentage 
+
+hits <- ggplot(womens_ncaa_volleyball) +
+  geom_histogram(aes(x = hit_pct, y = ..density..),
+                 center = 0.5, 
+                 closed = "left",
+                 color = "White") + 
+  stat_function(fun = dnorm, 
+                color = "red",
+                n = 666,
+                args = list(mean = mean(womens_ncaa_volleyball$hit_pct), sd = sd(womens_ncaa_volleyball$hit_pct))) +  
+  labs(title = "Checking Normality for Hit Percentage",
+       subtitle = "CMSA Regression Project",
+       x = "Hit Percentage",
+       y = "Density",
+       caption = "Courtesy of the NCAA") +
+theme_bw() + 
+theme(plot.title = element_text(size = 17, hjust = 0.4),
+      axis.title = element_text(size = 15))
+
+hits
+
+sets <- ggplot(womens_ncaa_volleyball) +
+  geom_histogram(aes(x = sets_per_game, y = ..density..),
+                 center = 0.5, 
+                 closed = "left",
+                 color = "White") + 
+  stat_function(fun = dnorm, 
+                color = "red",
+                n = 666,
+                args = list(mean = mean(womens_ncaa_volleyball$sets_per_game), sd = sd(womens_ncaa_volleyball$sets_per_game))) +  
+  labs(title = "Checking Normality for Sets per Game",
+       subtitle = "CMSA Regression Project",
+       x = "Sets per Game",
+       y = "Density",
+       caption = "Courtesy of the NCAA") +
+theme_bw() + 
+theme(plot.title = element_text(size = 17, hjust = 0.4),
+      axis.title = element_text(size = 15))
+sets
+
+```
+
+Model Analysis
+```{r}
+v1 <- lm(win_pct ~ errors_per_set + assists_per_set + blocks_per_set, data = womens_ncaa_volleyball)
+summary(volleyball_lm1)
+summary(v1)
+
+v2 <- lm(win_pct ~  blocks_per_set + kills_per_set, data = womens_ncaa_volleyball)
+summary(v2)
+
+v3 <- lm(win_pct ~ hit_pct + blocks_per_set, data = womens_ncaa_volleyball)
+summary(v3)
+
+v4 <- lm(win_pct ~ assists_per_set + blocks_per_set + errors_per_set + aces_per_set, data = womens_ncaa_volleyball)
+summary(v4)
+
+v5 <- lm(win_pct ~ hit_pct + blocks_per_set + aces_per_set, data = womens_ncaa_volleyball)
+summary(v5)
+
+v6 <- lm(win_pct ~ kills_per_set + aces_per_set + blocks_per_set, data = womens_ncaa_volleyball)
+summary(v6)
+
+library(ggfortify)
+library(car)
+diag1 <- autoplot(v1) + theme_bw()
+diag2 <- autoplot(v2) + theme_bw()
+diag3 <- autoplot(v3) + theme_bw()
+diag4 <- autoplot(v4) + theme_bw()
+diag5 <- autoplot(v5) + theme_bw()
+diag6 <- autoplot(v6) + theme_bw()
+
+diag1
+diag2
+diag3
+diag4
+diag5
+diag6
+
+
+vif(v1)
+vif(v2)
+vif(v3)
+vif(v4)
+vif(v5)
+vif(v6)
+
+```
+
